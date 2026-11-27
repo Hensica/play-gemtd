@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'none'" />
+    <meta name="theme-color" content="#0b0f14" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="GemTD" />
+    <meta name="description" content="GemTD-style maze tower defense playtest build." />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <title>GemTD</title>
+    <script type="module" crossorigin src="./assets/index-CGNnoBBL.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DYOB68r3.css">
+  </head>
+  <body>
+    <div id="app">
+      <header id="topbar">
+        <div class="stats">
+          <div class="stat"><span class="label">Wave</span><b id="wave">0/30</b></div>
+          <div class="stat"><span class="label">Lives</span><b id="lives">20</b></div>
+          <div class="stat"><span class="label">Gold</span><b id="gold">0</b></div>
+        </div>
+        <div id="phase-msg"></div>
+        <div class="speed">
+          <button class="chip" data-speed="1" title="Speed 1×">1×</button> <!-- copy-lint: allow speed multipliers -->
+          <button class="chip" data-speed="2" title="Speed 2×">2×</button> <!-- copy-lint: allow speed multipliers -->
+          <button class="chip" data-speed="3" title="Speed 3×">3×</button> <!-- copy-lint: allow speed multipliers -->
+          <button class="chip" id="pause" title="Pause (P)">❚❚</button>
+          <button class="chip" id="btn-mute" title="Mute sound (M)" aria-label="Mute sound" aria-pressed="false">🔊</button>
+          <button class="chip" id="btn-recipes" title="Recipes (B)" aria-label="Recipes" aria-pressed="false" aria-controls="recipe-pane">📖</button>
+          <span id="cam-controls" aria-label="Camera">
+            <button class="chip" id="cam-in" title="Zoom in (+)" aria-label="Zoom in">+</button>
+            <button class="chip" id="cam-out" title="Zoom out (−)" aria-label="Zoom out">−</button>
+            <button class="chip" id="cam-fit" title="Fit board (0)" aria-label="Fit board">⤢</button> <!-- copy-lint: allow the key name -->
+          </span>
+        </div>
+      </header>
+
+      <main id="board-wrap">
+        <canvas id="board" aria-label="Game board"></canvas>
+        <div id="toasts"></div>
+        <aside id="recipe-pane" aria-label="Recipes" hidden>
+          <div class="pane-head">
+            <h2>Recipes</h2>
+            <label class="pane-filter"><input type="checkbox" id="recipe-filter" /> Buildable now</label>
+            <button class="chip" id="recipe-close" aria-label="Close recipes">✕</button>
+          </div>
+          <p class="pane-note tiny muted" id="recipe-upgrade"></p>
+          <ul id="recipe-list"></ul>
+        </aside>
+        <div id="resume-bar" hidden>
+          <div class="resume-card">
+            <span id="resume-text">Saved game found.</span>
+            <div class="resume-actions">
+              <button class="btn small primary" id="resume-continue">Continue</button>
+              <button class="btn small" id="resume-new">New game</button>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <aside id="panel">
+        <section id="hand" class="section" hidden></section>
+        <section id="tray" class="section" hidden></section>
+        <section id="actions" class="section"></section>
+        <section id="info" class="section"></section>
+        <section id="economy" class="section"></section>
+        <section id="wave-preview" class="section"></section>
+        <section id="tools" class="section">
+          <button class="btn small" id="btn-codex">Codex</button>
+          <button class="btn small" id="btn-help">How to play</button>
+          <button class="btn small" id="btn-route">Show route</button>
+          <button class="btn small" id="btn-debug">Playtest tools</button>
+          <button class="btn small" id="btn-feedback">Report issue</button>
+          <button class="btn small danger" id="btn-restart">Restart</button>
+        </section>
+      </aside>
+
+      <div id="modal" hidden>
+        <div class="modal-card">
+          <div class="modal-head">
+            <h2 id="modal-title">Codex</h2>
+            <button class="chip" id="modal-close" aria-label="Close">✕</button>
+          </div>
+          <div id="modal-body"></div>
+        </div>
+      </div>
+
+      <div id="endscreen" class="overlay" hidden>
+        <div class="overlay-card" id="endscreen-body" role="dialog" aria-labelledby="endscreen-title"></div>
+      </div>
+
+      <div id="tutorial" class="overlay" hidden>
+        <div class="overlay-card" role="dialog" aria-label="How to play">
+          <div class="modal-head">
+            <h2>How to play</h2>
+            <button class="chip" data-tutorial="skip" aria-label="Close">✕</button>
+          </div>
+          <div id="tutorial-body"></div>
+        </div>
+      </div>
+
+      <div id="newrun" class="overlay" hidden>
+        <div class="overlay-card" role="dialog" aria-labelledby="newrun-title">
+          <div class="modal-head">
+            <h2 id="newrun-title">New run</h2>
+            <button class="chip" data-newrun="close" aria-label="Close">✕</button>
+          </div>
+          <form id="newrun-form" novalidate>
+            <fieldset id="newrun-rulesets" class="newrun-rulesets"></fieldset>
+            <label class="newrun-seed">Seed <input id="newrun-seed" type="text" inputmode="numeric" autocomplete="off" placeholder="Random" /></label>
+            <p class="tiny newrun-problem" id="newrun-problem" role="alert" hidden></p>
+            <div class="tutorial-actions">
+              <button type="button" class="btn small" data-newrun="close">Cancel</button>
+              <span class="spacer"></span>
+              <button type="submit" class="btn small primary" id="newrun-start">Start</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="tooltip" role="tooltip" hidden></div>
+      <div id="banners" aria-live="polite"></div>
+    </div>
+  </body>
+</html>
